@@ -1,7 +1,7 @@
 export const POCKETBASE_URL =
   process.env.NEXT_PUBLIC_POCKETBASE_URL?.replace(/\/$/, "") ||
   process.env.POCKETBASE_URL?.replace(/\/$/, "") ||
-  "http://127.0.0.1:8090";
+  "https://api-certs.softowetto.com";
 
 export const POCKETBASE_AUTH_COOKIE = "getitcertified_pb_auth";
 

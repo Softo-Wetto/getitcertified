@@ -20,6 +20,11 @@
   "images": {
     "binding": "IMAGES"
   },
+  "vars": {
+    "NEXT_PUBLIC_ADMIN_EMAIL": "nightmareasian@gmail.com",
+    "NEXT_PUBLIC_POCKETBASE_URL": "https://api-certs.softowetto.com",
+    "POCKETBASE_URL": "https://api-certs.softowetto.com"
+  },
   "observability": {
     "enabled": true
   }
