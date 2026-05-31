@@ -1,5 +1,5 @@
-import { ShieldCheck } from "lucide-react";
 import Link from "next/link";
+import GetItCertifiedLogo from "@/components/GetItCertifiedLogo";
 
 export default function Footer() {
   const year = new Date().getFullYear();
@@ -9,12 +9,7 @@ export default function Footer() {
       <div className="mx-auto max-w-7xl px-6 py-10">
         <div className="grid gap-8 md:grid-cols-3">
           <div>
-            <div className="flex items-center gap-3">
-              <span className="flex h-10 w-10 items-center justify-center rounded-2xl border border-cyan-300/20 bg-cyan-300/10 text-cyan-300">
-                <ShieldCheck className="h-5 w-5" />
-              </span>
-              <h3 className="text-lg font-bold text-slate-50">GetItCertified</h3>
-            </div>
+            <GetItCertifiedLogo textClassName="[&>span:first-child]:text-lg" />
             <p className="mt-3 text-sm leading-6 text-slate-400">
               A focused resource vault for IT, cloud, networking, and cyber security certification study.
             </p>
