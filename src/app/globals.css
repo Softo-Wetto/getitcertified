@@ -62,3 +62,42 @@ body {
   background: rgba(2, 6, 23, 0.92);
   box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.12);
 }
+
+.fade-up {
+  animation: fade-up 580ms ease both;
+}
+
+.scan-line {
+  position: relative;
+  overflow: hidden;
+}
+
+.scan-line::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent, rgba(34, 211, 238, 0.08), transparent);
+  transform: translateY(-100%);
+  animation: scan-line 4.5s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scan-line {
+  0%, 55% {
+    transform: translateY(-100%);
+  }
+  100% {
+    transform: translateY(100%);
+  }
+}

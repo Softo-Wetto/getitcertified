@@ -4,7 +4,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 
 const vendors = ["All", "Microsoft", "Cisco", "CompTIA", "ISC2"];
 
-export default function VendorFilter() {
+export default function VendorFilter({ actionPath = "/" }: { actionPath?: string }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const selected = searchParams.get("vendor") || "All";
@@ -13,7 +13,8 @@ export default function VendorFilter() {
     const params = new URLSearchParams(searchParams.toString());
     if (vendor === "All") params.delete("vendor");
     else params.set("vendor", vendor);
-    router.push(`/?${params.toString()}`);
+    const query = params.toString();
+    router.push(query ? `${actionPath}?${query}` : actionPath);
   }
 
   return (

@@ -41,6 +41,12 @@ export default function Header() {
 
         <nav className="flex items-center gap-2">
           <Link
+            href="/certificates"
+            className="rounded-xl px-3 py-2 text-sm font-semibold text-slate-300 transition hover:bg-white/5 hover:text-cyan-200"
+          >
+            Certificates
+          </Link>
+          <Link
             href="/bookmarks"
             className="rounded-xl px-3 py-2 text-sm font-semibold text-slate-300 transition hover:bg-white/5 hover:text-cyan-200"
           >

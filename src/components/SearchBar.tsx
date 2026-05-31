@@ -4,7 +4,7 @@ import { Search } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 
-export default function SearchBar() {
+export default function SearchBar({ actionPath = "/" }: { actionPath?: string }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [value, setValue] = useState(searchParams.get("search") || "");
@@ -16,7 +16,8 @@ export default function SearchBar() {
     if (value) params.set("search", value);
     else params.delete("search");
 
-    router.push(`/?${params.toString()}`);
+    const query = params.toString();
+    router.push(query ? `${actionPath}?${query}` : actionPath);
   }
 
   return (
