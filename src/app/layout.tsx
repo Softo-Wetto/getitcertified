@@ -6,6 +6,12 @@ import Footer from "../components/Footer";
 export const metadata: Metadata = {
   title: "GetItCertified",
   description: "Download PDFs and MP3 study resources for popular certifications.",
+  icons: {
+    icon: [
+      { url: "/icon.svg", type: "image/svg+xml" },
+      { url: "/favicon.ico", sizes: "any" },
+    ],
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
