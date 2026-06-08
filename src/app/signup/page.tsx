@@ -12,13 +12,24 @@ import {
   ShieldCheck,
   UserPlus,
 } from "lucide-react";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import AuthPortalShell from "@/components/AuthPortalShell";
 import { signUpWithPassword } from "@/lib/pocketbase/client";
 
 export default function SignupPage() {
+  return (
+    <Suspense fallback={<AuthFallback />}>
+      <SignupContent />
+    </Suspense>
+  );
+}
+
+function SignupContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirect =
+    searchParams.get("redirect")?.startsWith("/") ? searchParams.get("redirect")! : "/";
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [passwordConfirm, setPasswordConfirm] = useState("");
@@ -42,7 +53,7 @@ export default function SignupPage() {
     try {
       await signUpWithPassword(email.trim(), password);
       setMessage("Account created.");
-      router.push("/");
+      router.push(redirect);
       router.refresh();
     } catch (err) {
       const message = err instanceof Error ? err.message : "Signup failed.";
@@ -163,10 +174,24 @@ export default function SignupPage() {
 
       <p className="mt-5 text-center text-sm text-slate-400">
         Already cleared?{" "}
-        <Link href="/login" className="font-bold text-cyan-300 transition hover:text-cyan-100">
+        <Link href={`/login?redirect=${encodeURIComponent(redirect)}`} className="font-bold text-cyan-300 transition hover:text-cyan-100">
           Sign in
         </Link>
       </p>
+    </AuthPortalShell>
+  );
+}
+
+function AuthFallback() {
+  return (
+    <AuthPortalShell
+      eyebrow="Provision Access"
+      title="Create your certification command profile."
+      text="Preparing secure access..."
+    >
+      <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-5 text-sm text-slate-400">
+        Loading access console...
+      </div>
     </AuthPortalShell>
   );
 }

@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   AlertCircle,
   ArrowRight,
@@ -16,7 +16,18 @@ import AuthPortalShell from "@/components/AuthPortalShell";
 import { signInWithPassword } from "@/lib/pocketbase/client";
 
 export default function LoginPage() {
+  return (
+    <Suspense fallback={<AuthFallback />}>
+      <LoginContent />
+    </Suspense>
+  );
+}
+
+function LoginContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirect =
+    searchParams.get("redirect")?.startsWith("/") ? searchParams.get("redirect")! : "/";
   const [identity, setIdentity] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -30,7 +41,7 @@ export default function LoginPage() {
 
     try {
       await signInWithPassword(identity.trim(), password);
-      router.push("/");
+      router.push(redirect);
       router.refresh();
     } catch (err) {
       const message = err instanceof Error ? err.message : "Login failed.";
@@ -128,10 +139,24 @@ export default function LoginPage() {
 
       <p className="mt-5 text-center text-sm text-slate-400">
         Need access?{" "}
-        <Link href="/signup" className="font-bold text-cyan-300 transition hover:text-cyan-100">
+        <Link href={`/signup?redirect=${encodeURIComponent(redirect)}`} className="font-bold text-cyan-300 transition hover:text-cyan-100">
           Create an account
         </Link>
       </p>
+    </AuthPortalShell>
+  );
+}
+
+function AuthFallback() {
+  return (
+    <AuthPortalShell
+      eyebrow="Authorized Access"
+      title="Enter your cyber training vault."
+      text="Preparing secure access..."
+    >
+      <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-5 text-sm text-slate-400">
+        Loading access console...
+      </div>
     </AuthPortalShell>
   );
 }

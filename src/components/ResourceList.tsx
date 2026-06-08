@@ -1,6 +1,7 @@
 "use client";
 
-import { Download, ExternalLink, FileText, PlayCircle, Video } from "lucide-react";
+import { Download, ExternalLink, FileText, LockKeyhole, PlayCircle, Video } from "lucide-react";
+import { useEffect, useState } from "react";
 import { createRecord, getCurrentAuth } from "@/lib/pocketbase/client";
 import VideoPreview from "./VideoPreview";
 
@@ -12,6 +13,15 @@ type Resource = {
 };
 
 export default function ResourceList({ resources }: { resources: Resource[] }) {
+  const [signedIn, setSignedIn] = useState(false);
+
+  useEffect(() => {
+    const refreshAuth = () => setSignedIn(Boolean(getCurrentAuth()));
+    refreshAuth();
+    window.addEventListener("getitcertified-auth", refreshAuth);
+    return () => window.removeEventListener("getitcertified-auth", refreshAuth);
+  }, []);
+
   if (!resources.length) {
     return (
       <div className="rounded-3xl border border-dashed border-slate-700 bg-slate-950/60 p-8 text-center text-sm text-slate-400">
@@ -55,26 +65,18 @@ export default function ResourceList({ resources }: { resources: Resource[] }) {
                   </div>
 
                   <div className="mt-5 flex flex-wrap gap-3">
-                    <a
-                      href={resource.url}
-                      download
-                      target="_blank"
-                      rel="noreferrer"
-                      onClick={() => recordDownload(resource.id)}
-                      className="inline-flex items-center gap-2 rounded-xl bg-cyan-300 px-4 py-2 text-sm font-bold text-slate-950 transition hover:bg-cyan-200"
-                    >
-                      <Download className="h-4 w-4" />
-                      Download
-                    </a>
-                    <a
-                      href={resource.url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="inline-flex items-center gap-2 rounded-xl border border-cyan-300/20 px-4 py-2 text-sm font-semibold text-cyan-100 transition hover:bg-cyan-300/10"
-                    >
-                      <ExternalLink className="h-4 w-4" />
-                      Open
-                    </a>
+                    <GuardedResourceButton
+                      resource={resource}
+                      variant="primary"
+                      action="download"
+                      signedIn={signedIn}
+                    />
+                    <GuardedResourceButton
+                      resource={resource}
+                      variant="secondary"
+                      action="open"
+                      signedIn={signedIn}
+                    />
                   </div>
                 </div>
               </article>
@@ -108,26 +110,18 @@ export default function ResourceList({ resources }: { resources: Resource[] }) {
                       {resource.title}
                     </h3>
                     <div className="mt-4 flex flex-wrap gap-2">
-                      <a
-                        href={resource.url}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="inline-flex items-center gap-2 rounded-xl border border-slate-700 px-3 py-2 text-sm font-semibold text-slate-300 transition hover:border-cyan-300/30 hover:bg-cyan-300/10 hover:text-cyan-100"
-                      >
-                        <ExternalLink className="h-4 w-4" />
-                        Preview
-                      </a>
-                      <a
-                        href={resource.url}
-                        download
-                        target="_blank"
-                        rel="noreferrer"
-                        onClick={() => recordDownload(resource.id)}
-                        className="inline-flex items-center gap-2 rounded-xl bg-cyan-300 px-3 py-2 text-sm font-bold text-slate-950 transition hover:bg-cyan-200"
-                      >
-                        <Download className="h-4 w-4" />
-                        Download
-                      </a>
+                      <GuardedResourceButton
+                        resource={resource}
+                        variant="secondary"
+                        action="open"
+                        signedIn={signedIn}
+                      />
+                      <GuardedResourceButton
+                        resource={resource}
+                        variant="primary"
+                        action="download"
+                        signedIn={signedIn}
+                      />
                     </div>
                   </div>
                 </div>
@@ -136,7 +130,63 @@ export default function ResourceList({ resources }: { resources: Resource[] }) {
           </div>
         </section>
       )}
+
+      {!signedIn && (
+        <div className="rounded-3xl border border-cyan-300/15 bg-cyan-300/10 p-5 text-sm leading-6 text-cyan-50">
+          <span className="inline-flex items-center gap-2 font-bold">
+            <LockKeyhole className="h-4 w-4" />
+            Sign in required for downloads.
+          </span>{" "}
+          You can review the certificate overview, but file downloads and external resource opens are protected.
+        </div>
+      )}
     </div>
+  );
+}
+
+function GuardedResourceButton({
+  resource,
+  variant,
+  action,
+  signedIn,
+}: {
+  resource: Resource;
+  variant: "primary" | "secondary";
+  action: "download" | "open";
+  signedIn: boolean;
+}) {
+  const isDownload = action === "download";
+  const Icon = isDownload ? Download : ExternalLink;
+  const label = isDownload ? "Download" : resource.file_type === "pdf" ? "Preview" : "Open";
+  const baseClass =
+    variant === "primary"
+      ? "inline-flex items-center gap-2 rounded-xl bg-cyan-300 px-3 py-2 text-sm font-bold text-slate-950 transition hover:bg-cyan-200"
+      : "inline-flex items-center gap-2 rounded-xl border border-slate-700 px-3 py-2 text-sm font-semibold text-slate-300 transition hover:border-cyan-300/30 hover:bg-cyan-300/10 hover:text-cyan-100";
+
+  function handleClick(event: React.MouseEvent<HTMLAnchorElement>) {
+    if (!signedIn) {
+      event.preventDefault();
+      const next = `${window.location.pathname}${window.location.search || ""}#downloads`;
+      window.location.href = `/login?redirect=${encodeURIComponent(next)}`;
+      return;
+    }
+
+    if (isDownload) recordDownload(resource.id);
+  }
+
+  return (
+    <a
+      href={resource.url}
+      download={isDownload ? true : undefined}
+      target="_blank"
+      rel="noreferrer"
+      onClick={handleClick}
+      className={baseClass}
+      title={signedIn ? label : "Sign in to access this file"}
+    >
+      {signedIn ? <Icon className="h-4 w-4" /> : <LockKeyhole className="h-4 w-4" />}
+      {signedIn ? label : "Sign in"}
+    </a>
   );
 }
 

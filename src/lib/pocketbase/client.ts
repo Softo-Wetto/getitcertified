@@ -69,6 +69,28 @@ export async function signUpWithPassword(email: string, password: string) {
   return normalizeUser(record);
 }
 
+export async function updateCurrentUser(data: Record<string, unknown> | FormData) {
+  const auth = getBrowserAuth();
+  if (!auth?.user.id) throw new Error("You must be signed in.");
+
+  const record = await pbRequest<RawPocketBaseRecord>(
+    `/api/collections/users/records/${auth.user.id}`,
+    {
+      method: "PATCH",
+      token: auth.token,
+      body: data instanceof FormData ? data : JSON.stringify(data),
+    }
+  );
+
+  const nextAuth: PocketBaseAuth = {
+    token: auth.token,
+    user: normalizeUser(record),
+  };
+
+  saveBrowserAuth(nextAuth);
+  return nextAuth.user;
+}
+
 export function signOut() {
   clearBrowserAuth();
 }
