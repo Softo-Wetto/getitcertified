@@ -29,7 +29,7 @@ const pocketBaseUrl =
   "https://api-certs.softowetto.com";
 const superuserEmail = process.env.POCKETBASE_SUPERUSER_EMAIL;
 const superuserPassword = process.env.POCKETBASE_SUPERUSER_PASSWORD;
-const adminEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL;
+const adminEmail = "nightmareasian@gmail.com";
 
 if (!superuserEmail || !superuserPassword) {
   console.error("Missing POCKETBASE_SUPERUSER_EMAIL or POCKETBASE_SUPERUSER_PASSWORD.");
@@ -169,9 +169,7 @@ function escapeRuleValue(value) {
   return value.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
 }
 
-const adminWriteRule = adminEmail
-  ? `@request.auth.email = "${escapeRuleValue(adminEmail)}"`
-  : '@request.auth.id != ""';
+const adminWriteRule = `@request.auth.email = "${escapeRuleValue(adminEmail)}"`;
 
 async function main() {
   const token = await authenticate();
@@ -240,6 +238,7 @@ async function main() {
       text("legacy_id"),
       relation("certificate_id", certificates.id, { required: true, cascadeDelete: true }),
       text("title", { required: true }),
+      text("description"),
       text("file_type", { required: true }),
       text("storage_path"),
       file("resource_file", { mimeTypes: ["application/pdf", "video/mp4"] }),

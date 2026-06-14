@@ -1,8 +1,10 @@
 "use client";
 
-import { FileText, Loader2, UploadCloud, Video, X } from "lucide-react";
+import { FileText, Loader2, ShieldCheck, UploadCloud, Video, X } from "lucide-react";
+import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { isAdminEmail } from "@/lib/admin";
 import { getPocketBaseFileUrl } from "@/lib/pocketbase/config";
 import {
   createRecord,
@@ -18,12 +20,11 @@ type UploadItem = {
   file: File;
   fileType: "pdf" | "mp4";
   title: string;
+  description: string;
 };
 
 export default function UploadPage() {
   const router = useRouter();
-  const adminEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL;
-
   const [loading, setLoading] = useState(false);
   const [allowed, setAllowed] = useState<boolean | null>(null);
   const [uploadedCount, setUploadedCount] = useState(0);
@@ -39,11 +40,11 @@ export default function UploadPage() {
 
   useEffect(() => {
     const auth = getCurrentAuth();
-    const isAdmin = Boolean(auth?.user.email && adminEmail && auth.user.email === adminEmail);
+    const isAdmin = isAdminEmail(auth?.user.email);
     setAllowed(isAdmin);
 
     if (!isAdmin) router.push("/login");
-  }, [adminEmail, router]);
+  }, [router]);
 
   const generatedSlug = useMemo(() => {
     return title
@@ -70,6 +71,7 @@ export default function UploadPage() {
       file,
       fileType,
       title: titleFromFileName(file.name),
+      description: "",
     }));
 
     setItems((current) => [...current, ...nextItems]);
@@ -82,6 +84,12 @@ export default function UploadPage() {
   function updateItemTitle(id: string, value: string) {
     setItems((current) =>
       current.map((item) => (item.id === id ? { ...item, title: value } : item))
+    );
+  }
+
+  function updateItemDescription(id: string, value: string) {
+    setItems((current) =>
+      current.map((item) => (item.id === id ? { ...item, description: value } : item))
     );
   }
 
@@ -115,6 +123,7 @@ export default function UploadPage() {
         const formData = new FormData();
         formData.append("certificate_id", cert.id);
         formData.append("title", item.title.trim() || titleFromFileName(item.file.name));
+        formData.append("description", item.description.trim());
         formData.append("file_type", item.fileType);
         formData.append("resource_file", item.file);
         formData.append("created_at", new Date().toISOString());
@@ -162,29 +171,40 @@ export default function UploadPage() {
 
   return (
     <main className="mx-auto max-w-6xl px-6 py-10 lg:py-14">
-      <div className="mb-8 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-        <div>
-          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-cyan-300/70">
-            Admin studio
-          </p>
-          <h1 className="mt-2 text-4xl font-extrabold tracking-tight text-slate-50">
-            Upload certification resources
+      <section className="admin-studio-hero relative mb-8 min-h-[23rem] overflow-hidden rounded-3xl border border-cyan-300/15">
+        <Image
+          src="/images/admin-content-studio.png"
+          alt="Secure certificate resource upload workstation"
+          fill
+          priority
+          sizes="(max-width: 1200px) 100vw, 1152px"
+          className="admin-studio-image object-cover"
+        />
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(2,6,23,0.98)_0%,rgba(2,6,23,0.90)_46%,rgba(2,6,23,0.30)_100%)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(0deg,rgba(2,6,23,0.92),transparent_70%)]" />
+        <div className="relative z-10 flex min-h-[23rem] flex-col justify-end p-6 md:p-9">
+          <span className="inline-flex w-fit items-center gap-2 rounded-full border border-emerald-300/25 bg-emerald-300/10 px-3 py-1.5 text-xs font-bold uppercase tracking-[0.16em] text-emerald-100 backdrop-blur">
+            <ShieldCheck className="h-4 w-4" />
+            Administrator access verified
+          </span>
+          <h1 className="mt-4 max-w-3xl text-4xl font-extrabold tracking-tight text-slate-50 md:text-5xl">
+            Build a polished certification library
           </h1>
-          <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-400">
-            Add multiple PDFs and training videos to one certification in a single upload batch.
+          <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-300 md:text-base">
+            Create the certificate once, attach multiple PDFs and training videos, then give every resource its own clear lesson description.
           </p>
+          <div className="mt-6 grid w-full max-w-lg grid-cols-3 overflow-hidden rounded-2xl border border-cyan-300/15 bg-slate-950/75 text-center shadow-sm backdrop-blur-md">
+            <Metric label="PDFs" value={pdfCount} />
+            <Metric label="Videos" value={videoCount} />
+            <Metric label="Queued" value={items.length} />
+          </div>
         </div>
-
-        <div className="grid grid-cols-3 overflow-hidden rounded-2xl border border-cyan-300/15 bg-slate-950/70 text-center shadow-sm">
-          <Metric label="PDFs" value={pdfCount} />
-          <Metric label="Videos" value={videoCount} />
-          <Metric label="Queued" value={items.length} />
-        </div>
-      </div>
+      </section>
 
       <form onSubmit={handleUpload} className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
-        <section className="cyber-panel rounded-3xl p-6">
-          <h2 className="text-lg font-bold text-slate-50">Certificate</h2>
+        <section className="cyber-panel studio-panel-enter rounded-3xl p-6">
+          <p className="text-xs font-bold uppercase tracking-[0.18em] text-cyan-300/70">Step 01</p>
+          <h2 className="mt-2 text-lg font-bold text-slate-50">Certificate details</h2>
 
           <div className="mt-5 space-y-4">
             <Field label="Title">
@@ -226,10 +246,11 @@ export default function UploadPage() {
           </div>
         </section>
 
-        <section className="cyber-panel rounded-3xl p-6">
+        <section className="cyber-panel studio-panel-enter rounded-3xl p-6 [animation-delay:100ms]">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <h2 className="text-lg font-bold text-slate-50">Resource batch</h2>
+              <p className="text-xs font-bold uppercase tracking-[0.18em] text-cyan-300/70">Step 02</p>
+              <h2 className="mt-2 text-lg font-bold text-slate-50">Resource batch</h2>
               <p className="mt-1 text-sm text-slate-400">
                 File names become editable lesson titles automatically.
               </p>
@@ -270,13 +291,20 @@ export default function UploadPage() {
                       <Video className="h-5 w-5" />
                     )}
                   </div>
-                  <div className="min-w-0">
+                  <div className="min-w-0 space-y-2">
                     <input
                       value={item.title}
                       onChange={(e) => updateItemTitle(item.id, e.target.value)}
                       className="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-sm font-semibold text-slate-100 outline-none focus:border-cyan-300/60"
                     />
-                    <p className="mt-1 truncate text-xs text-slate-500">
+                    <textarea
+                      value={item.description}
+                      onChange={(e) => updateItemDescription(item.id, e.target.value)}
+                      placeholder="Optional lesson description, objectives, or recommended study order"
+                      rows={3}
+                      className="w-full resize-y rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-sm leading-6 text-slate-300 outline-none transition focus:border-cyan-300/60"
+                    />
+                    <p className="truncate text-xs text-slate-500">
                       {index + 1}. {item.file.name} - {formatFileSize(item.file.size)}
                     </p>
                   </div>

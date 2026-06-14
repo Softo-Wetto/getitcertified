@@ -4,13 +4,13 @@ import { Cpu, LogOut, Radar, Shield, UploadCloud, UserRound } from "lucide-react
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import GetItCertifiedLogo from "@/components/GetItCertifiedLogo";
+import { isAdminEmail } from "@/lib/admin";
 import { getCurrentAuth, signOut } from "@/lib/pocketbase/client";
 
 export default function Header() {
   const [email, setEmail] = useState<string | null>(null);
   const [username, setUsername] = useState<string | null>(null);
-  const adminEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL;
-  const isAdmin = Boolean(email && adminEmail && email === adminEmail);
+  const isAdmin = isAdminEmail(email);
 
   useEffect(() => {
     const refreshAuth = () => {
@@ -66,10 +66,10 @@ export default function Header() {
           {email && isAdmin && (
             <Link
               href="/upload"
-              className="inline-flex items-center gap-2 rounded-xl border border-emerald-300/30 bg-emerald-300/10 px-4 py-2 text-sm font-bold text-emerald-100 transition hover:bg-emerald-300/18"
+              className="admin-studio-link inline-flex items-center gap-2 rounded-xl border border-emerald-300/30 bg-emerald-300/10 px-4 py-2 text-sm font-bold text-emerald-100 transition hover:bg-emerald-300/18"
             >
               <UploadCloud className="h-4 w-4" />
-              Upload
+              Admin studio
             </Link>
           )}
 

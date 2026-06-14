@@ -3,6 +3,7 @@
 import { MessageSquare, Send, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
+import { isAdminEmail } from "@/lib/admin";
 import {
   createRecord,
   deleteRecord,
@@ -25,14 +26,13 @@ export default function CertificateComments({
 }: {
   certificateId: string;
 }) {
-  const adminEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL;
   const [comments, setComments] = useState<CommentItem[]>([]);
   const [body, setBody] = useState("");
   const [loading, setLoading] = useState(true);
   const [posting, setPosting] = useState(false);
   const [error, setError] = useState("");
   const [auth, setAuth] = useState<ReturnType<typeof getCurrentAuth>>(null);
-  const isAdmin = Boolean(auth?.user.email && adminEmail && auth.user.email === adminEmail);
+  const isAdmin = isAdminEmail(auth?.user.email);
 
   const loadComments = useCallback(async () => {
     setLoading(true);

@@ -26,6 +26,7 @@ export type Resource = {
   legacy_id?: string | null;
   certificate_id: string;
   title: string;
+  description: string | null;
   file_type: "pdf" | "mp4";
   storage_path: string | null;
   resource_file?: string | null;
@@ -142,6 +143,7 @@ function normalizeResource(record: RawPocketBaseRecord): Resource {
     legacy_id: stringOrNull(normalized.legacy_id),
     certificate_id: String(normalized.certificate_id || ""),
     title: String(normalized.title || "Untitled resource"),
+    description: stringOrNull(normalized.description),
     file_type: fileType,
     storage_path: stringOrNull(normalized.storage_path),
     resource_file: stringOrNull(normalized.resource_file),

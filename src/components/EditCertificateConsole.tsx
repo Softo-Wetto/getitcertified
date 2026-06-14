@@ -1,9 +1,11 @@
 "use client";
 
-import { ArrowLeft, FileText, Loader2, Save, Trash2, UploadCloud, Video, X } from "lucide-react";
+import { ArrowLeft, FileText, Loader2, Save, ShieldCheck, Trash2, UploadCloud, Video, X } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { isAdminEmail } from "@/lib/admin";
 import { getPocketBaseFileUrl } from "@/lib/pocketbase/config";
 import {
   createRecord,
@@ -31,6 +33,7 @@ type ResourceForm = {
   title: string;
   file_type: "pdf" | "mp4";
   storage_path: string;
+  description: string;
 };
 
 type UploadItem = {
@@ -38,11 +41,11 @@ type UploadItem = {
   file: File;
   fileType: "pdf" | "mp4";
   title: string;
+  description: string;
 };
 
 export default function EditCertificateConsole({ slug }: { slug: string }) {
   const router = useRouter();
-  const adminEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL;
   const [allowed, setAllowed] = useState<boolean | null>(null);
   const [certificate, setCertificate] = useState<CertificateForm | null>(null);
   const [resources, setResources] = useState<ResourceForm[]>([]);
@@ -62,7 +65,7 @@ export default function EditCertificateConsole({ slug }: { slug: string }) {
 
   useEffect(() => {
     const auth = getCurrentAuth();
-    const isAdmin = Boolean(auth?.user.email && adminEmail && auth.user.email === adminEmail);
+    const isAdmin = isAdminEmail(auth?.user.email);
     setAllowed(isAdmin);
 
     if (!isAdmin) {
@@ -80,7 +83,7 @@ export default function EditCertificateConsole({ slug }: { slug: string }) {
         setError(message);
       })
       .finally(() => setLoading(false));
-  }, [adminEmail, router, slug]);
+  }, [router, slug]);
 
   async function handleSave(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -107,6 +110,7 @@ export default function EditCertificateConsole({ slug }: { slug: string }) {
           title: resource.title.trim(),
           file_type: resource.file_type,
           storage_path: resource.storage_path.trim(),
+          description: resource.description.trim(),
           updated_at: new Date().toISOString(),
         });
       }
@@ -148,14 +152,15 @@ export default function EditCertificateConsole({ slug }: { slug: string }) {
       file,
       fileType,
       title: titleFromFileName(file.name),
+      description: "",
     }));
 
     setNewItems((current) => [...current, ...items]);
   }
 
-  function updateNewItem(id: string, title: string) {
+  function updateNewItem(id: string, patch: Partial<Pick<UploadItem, "title" | "description">>) {
     setNewItems((current) =>
-      current.map((item) => (item.id === id ? { ...item, title } : item))
+      current.map((item) => (item.id === id ? { ...item, ...patch } : item))
     );
   }
 
@@ -178,6 +183,7 @@ export default function EditCertificateConsole({ slug }: { slug: string }) {
         const formData = new FormData();
         formData.append("certificate_id", certificate.id);
         formData.append("title", item.title.trim() || titleFromFileName(item.file.name));
+        formData.append("description", item.description.trim());
         formData.append("file_type", item.fileType);
         formData.append("resource_file", item.file);
         formData.append("created_at", new Date().toISOString());
@@ -199,6 +205,7 @@ export default function EditCertificateConsole({ slug }: { slug: string }) {
           title: typeof resource.title === "string" ? resource.title : item.title,
           file_type: item.fileType,
           storage_path: fileUrl || "",
+          description: item.description.trim(),
         });
         setUploadedResourceCount((count) => count + 1);
       }
@@ -243,33 +250,44 @@ export default function EditCertificateConsole({ slug }: { slug: string }) {
 
   return (
     <main className="mx-auto max-w-6xl px-6 py-10 lg:py-14">
-      <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-        <div>
+      <section className="admin-studio-hero relative mb-8 min-h-[22rem] overflow-hidden rounded-3xl border border-cyan-300/15">
+        <Image
+          src="/images/admin-content-studio.png"
+          alt="Secure certificate editing workstation"
+          fill
+          priority
+          sizes="(max-width: 1200px) 100vw, 1152px"
+          className="admin-studio-image object-cover"
+        />
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(2,6,23,0.98)_0%,rgba(2,6,23,0.88)_52%,rgba(2,6,23,0.32)_100%)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(0deg,rgba(2,6,23,0.92),transparent_70%)]" />
+        <div className="relative z-10 flex min-h-[22rem] flex-col justify-end p-6 md:p-9">
           <Link
             href={`/certificates/${certificate.slug}`}
-            className="inline-flex items-center gap-2 text-sm font-semibold text-cyan-300 transition hover:text-cyan-100"
+            className="inline-flex w-fit items-center gap-2 rounded-xl border border-cyan-300/20 bg-slate-950/55 px-3 py-2 text-sm font-semibold text-cyan-200 backdrop-blur transition hover:bg-cyan-300/10 hover:text-cyan-50"
           >
             <ArrowLeft className="h-4 w-4" />
             Back to certificate
           </Link>
-          <p className="mt-5 text-sm font-semibold uppercase tracking-[0.18em] text-emerald-300/70">
-            Admin edit console
+          <p className="mt-6 inline-flex w-fit items-center gap-2 text-xs font-bold uppercase tracking-[0.18em] text-emerald-200">
+            <ShieldCheck className="h-4 w-4" />
+            Administrator edit console
           </p>
-          <h1 className="mt-2 text-4xl font-extrabold tracking-tight text-slate-50">
+          <h1 className="mt-3 max-w-3xl text-4xl font-extrabold tracking-tight text-slate-50 md:text-5xl">
             Edit {certificate.title}
           </h1>
+          <div className="mt-6 grid w-full max-w-lg grid-cols-3 overflow-hidden rounded-2xl border border-cyan-300/15 bg-slate-950/75 text-center shadow-sm backdrop-blur-md">
+            <Metric label="PDFs" value={pdfCount} />
+            <Metric label="Videos" value={videoCount} />
+            <Metric label="Resources" value={resources.length} />
+          </div>
         </div>
-
-        <div className="grid grid-cols-3 overflow-hidden rounded-2xl border border-cyan-300/15 bg-slate-950/70 text-center shadow-sm">
-          <Metric label="PDFs" value={pdfCount} />
-          <Metric label="Videos" value={videoCount} />
-          <Metric label="Resources" value={resources.length} />
-        </div>
-      </div>
+      </section>
 
       <form onSubmit={handleSave} className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
-        <section className="cyber-panel rounded-3xl p-6">
-          <h2 className="text-lg font-bold text-slate-50">Certificate details</h2>
+        <section className="cyber-panel studio-panel-enter rounded-3xl p-6">
+          <p className="text-xs font-bold uppercase tracking-[0.18em] text-cyan-300/70">Certificate record</p>
+          <h2 className="mt-2 text-lg font-bold text-slate-50">Certificate details</h2>
           <div className="mt-5 space-y-4">
             <Field label="Title">
               <input
@@ -331,7 +349,7 @@ export default function EditCertificateConsole({ slug }: { slug: string }) {
           </div>
         </section>
 
-        <section className="cyber-panel rounded-3xl p-6">
+        <section className="cyber-panel studio-panel-enter rounded-3xl p-6 [animation-delay:100ms]">
           <div className="flex items-start justify-between gap-4">
             <div>
               <h2 className="text-lg font-bold text-slate-50">Attached resources</h2>
@@ -385,6 +403,13 @@ export default function EditCertificateConsole({ slug }: { slug: string }) {
                         className="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-sm text-slate-400 outline-none focus:border-cyan-300/60"
                       />
                     </div>
+                    <textarea
+                      value={resource.description}
+                      onChange={(e) => updateResource(resource.id, { description: e.target.value })}
+                      placeholder="Add a lesson summary, learning objective, or study note"
+                      rows={3}
+                      className="w-full resize-y rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-sm leading-6 text-slate-300 outline-none transition focus:border-cyan-300/60"
+                    />
                     <p className="text-xs text-slate-500">Resource {index + 1}</p>
                   </div>
                   <button
@@ -438,8 +463,15 @@ export default function EditCertificateConsole({ slug }: { slug: string }) {
                     <div className="min-w-0">
                       <input
                         value={item.title}
-                        onChange={(e) => updateNewItem(item.id, e.target.value)}
+                        onChange={(e) => updateNewItem(item.id, { title: e.target.value })}
                         className="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-sm font-semibold text-slate-100 outline-none focus:border-cyan-300/60"
+                      />
+                      <textarea
+                        value={item.description}
+                        onChange={(e) => updateNewItem(item.id, { description: e.target.value })}
+                        placeholder="Optional lesson description, objectives, or recommended study order"
+                        rows={3}
+                        className="mt-2 w-full resize-y rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-sm leading-6 text-slate-300 outline-none transition focus:border-cyan-300/60"
                       />
                       <p className="mt-1 truncate text-xs text-slate-500">
                         {index + 1}. {item.file.name} - {formatFileSize(item.file.size)}
@@ -618,6 +650,7 @@ async function loadCertificate(slug: string) {
     title: stringValue(resource.title, "Untitled resource"),
     file_type: resource.file_type === "mp4" ? "mp4" : "pdf",
     storage_path: stringValue(resource.storage_path, ""),
+    description: stringValue(resource.description, ""),
   }));
 
   return { certificate, resources };

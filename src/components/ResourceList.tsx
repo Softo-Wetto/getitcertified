@@ -8,6 +8,7 @@ import VideoPreview from "./VideoPreview";
 type Resource = {
   id: string;
   title: string;
+  description?: string | null;
   file_type: "pdf" | "mp4";
   url: string;
 };
@@ -60,6 +61,11 @@ export default function ResourceList({ resources }: { resources: Resource[] }) {
                       <h3 className="mt-2 text-lg font-bold leading-6">
                         {resource.title}
                       </h3>
+                      {resource.description ? (
+                        <p className="mt-2 text-sm leading-6 text-slate-400">
+                          {resource.description}
+                        </p>
+                      ) : null}
                     </div>
                     <PlayCircle className="h-6 w-6 flex-none text-blue-300" />
                   </div>
@@ -109,6 +115,11 @@ export default function ResourceList({ resources }: { resources: Resource[] }) {
                     <h3 className="mt-1 text-base font-bold leading-6 text-slate-50">
                       {resource.title}
                     </h3>
+                    {resource.description ? (
+                      <p className="mt-2 line-clamp-3 text-sm leading-6 text-slate-400">
+                        {resource.description}
+                      </p>
+                    ) : null}
                     <div className="mt-4 flex flex-wrap gap-2">
                       <GuardedResourceButton
                         resource={resource}

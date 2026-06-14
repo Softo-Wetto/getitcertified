@@ -53,6 +53,7 @@ export default async function CertificatePage({
   const hydratedResources = resources.map((resource) => ({
     id: resource.id,
     title: resource.title,
+    description: resource.description,
     file_type: resource.file_type,
     url: getResourceFileUrl(resource),
   }));
@@ -68,7 +69,14 @@ export default async function CertificatePage({
         <div className="grid gap-8 lg:grid-cols-[1.5fr_0.8fr] lg:items-start">
           <div className="cyber-panel overflow-hidden rounded-3xl">
             <div className="relative overflow-hidden border-b border-cyan-300/10 bg-slate-950 px-8 py-10 text-white">
+              {certificate.image_url ? (
+                <div
+                  className="absolute inset-0 bg-cover bg-center opacity-25"
+                  style={{ backgroundImage: `url("${certificate.image_url}")` }}
+                />
+              ) : null}
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.30),transparent_34%),linear-gradient(135deg,rgba(37,99,235,0.18),rgba(15,23,42,0))]" />
+              <div className="absolute inset-0 bg-gradient-to-r from-slate-950/95 via-slate-950/80 to-slate-950/45" />
               <div className="relative">
                 <div className="mb-4 flex flex-wrap items-center gap-3">
                   <Badge>{certificate.vendor}</Badge>

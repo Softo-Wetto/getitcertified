@@ -3,22 +3,21 @@
 import { Pencil } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { isAdminEmail } from "@/lib/admin";
 import { getCurrentAuth } from "@/lib/pocketbase/client";
 
 export default function AdminCertificateActions({ slug }: { slug: string }) {
   const [isAdmin, setIsAdmin] = useState(false);
-  const adminEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL;
-
   useEffect(() => {
     const refresh = () => {
       const auth = getCurrentAuth();
-      setIsAdmin(Boolean(auth?.user.email && adminEmail && auth.user.email === adminEmail));
+      setIsAdmin(isAdminEmail(auth?.user.email));
     };
 
     refresh();
     window.addEventListener("getitcertified-auth", refresh);
     return () => window.removeEventListener("getitcertified-auth", refresh);
-  }, [adminEmail]);
+  }, []);
 
   if (!isAdmin) return null;
 

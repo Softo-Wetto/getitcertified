@@ -249,6 +249,31 @@ body {
   pointer-events: none;
 }
 
+.cert-home-hero,
+.admin-studio-hero {
+  isolation: isolate;
+}
+
+.cert-hero-image {
+  transform: scale(1.02);
+  animation: cert-hero-drift 16s ease-in-out infinite alternate;
+}
+
+.admin-studio-image {
+  transform: scale(1.015);
+  animation: admin-studio-drift 14s ease-in-out infinite alternate;
+}
+
+.studio-panel-enter {
+  opacity: 0;
+  animation: studio-panel-enter 520ms ease-out forwards;
+}
+
+.admin-studio-link {
+  box-shadow: 0 0 0 rgba(110, 231, 183, 0);
+  animation: admin-studio-pulse 3.8s ease-in-out infinite;
+}
+
 @keyframes cert-logo-sweep {
   0%,
   48% {
@@ -277,6 +302,45 @@ body {
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes cert-hero-drift {
+  from {
+    transform: scale(1.02) translate3d(0, 0, 0);
+  }
+  to {
+    transform: scale(1.07) translate3d(-1%, -0.5%, 0);
+  }
+}
+
+@keyframes admin-studio-drift {
+  from {
+    transform: scale(1.015) translate3d(0, 0, 0);
+  }
+  to {
+    transform: scale(1.055) translate3d(-0.75%, -0.35%, 0);
+  }
+}
+
+@keyframes studio-panel-enter {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes admin-studio-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 rgba(110, 231, 183, 0);
+  }
+  50% {
+    box-shadow: 0 0 24px rgba(110, 231, 183, 0.12);
   }
 }
 
@@ -319,8 +383,16 @@ body {
   .cert-logo-sweep,
   .auth-pulse,
   .auth-ring,
-  .auth-terminal::before {
+  .auth-terminal::before,
+  .cert-hero-image,
+  .admin-studio-image,
+  .studio-panel-enter,
+  .admin-studio-link {
     animation: none;
+  }
+
+  .studio-panel-enter {
+    opacity: 1;
   }
 }
 

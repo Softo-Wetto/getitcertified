@@ -21,6 +21,14 @@ export default function CertificateCard({ certificate }: Props) {
       href={`/certificates/${certificate.slug}`}
       className="group cyber-card relative min-h-[21rem] overflow-hidden rounded-3xl p-5 transition duration-300 hover:-translate-y-1 hover:border-cyan-300/40 hover:shadow-[0_28px_90px_rgba(8,145,178,0.16)]"
     >
+      {certificate.image_url ? (
+        <div
+          className="absolute inset-x-0 top-0 h-40 bg-cover bg-center opacity-30 transition duration-500 group-hover:scale-105 group-hover:opacity-40"
+          style={{ backgroundImage: `url("${certificate.image_url}")` }}
+        >
+          <div className="absolute inset-0 bg-gradient-to-b from-slate-950/10 via-slate-950/55 to-slate-950" />
+        </div>
+      ) : null}
       <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(34,211,238,0.12),transparent_34%),radial-gradient(circle_at_80%_0%,rgba(59,130,246,0.16),transparent_30%)] opacity-80 transition group-hover:opacity-100" />
       <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full border border-cyan-300/10 bg-cyan-300/5 transition group-hover:scale-125" />
       <div className="absolute bottom-0 left-0 h-px w-full bg-gradient-to-r from-cyan-300/0 via-cyan-300/35 to-cyan-300/0" />
